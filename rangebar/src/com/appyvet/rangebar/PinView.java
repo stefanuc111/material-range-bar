@@ -19,10 +19,16 @@ import android.graphics.Canvas;
 import android.graphics.ColorFilter;
 import android.graphics.LightingColorFilter;
 import android.graphics.Paint;
+import android.graphics.PorterDuff;
+import android.graphics.PorterDuffColorFilter;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
+import android.os.Build;
+import android.util.DisplayMetrics;
 import android.util.TypedValue;
 import android.view.View;
+
+import com.nineoldandroids.view.ViewHelper;
 
 /**
  * Represents a thumb in the RangeBar slider. This is the handle for the slider
@@ -73,6 +79,7 @@ class PinView extends View {
     private float mTextYPadding;
 
     private Rect mBounds = new Rect();
+    private Rect mBoundsText = new Rect();
 
     private Resources mRes;
 
@@ -81,9 +88,12 @@ class PinView extends View {
     private float mCircleRadiusPx;
 
     // Constructors ////////////////////////////////////////////////////////////
-
+    public static int MIN_TEXT_SIZE;
+    public static int MAX_TEXT_SIZE;
     public PinView(Context context) {
         super(context);
+        MIN_TEXT_SIZE = (int) convertDpToPixel(3, context);
+        MAX_TEXT_SIZE = (int) convertDpToPixel(10, context);
     }
 
     // Initialization //////////////////////////////////////////////////////////
@@ -103,7 +113,7 @@ class PinView extends View {
     public void init(Context ctx, float y, float pinRadiusDP, int pinColor, int textColor,
             float circleRadius, int circleColor) {
         mRes = ctx.getResources();
-        mPin = ctx.getResources().getDrawable(R.drawable.rotate);
+        mPin = ctx.getResources().getDrawable(R.drawable.text_select);
 
         mPinPadding = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP,
                 15, mRes.getDisplayMetrics());
@@ -136,8 +146,8 @@ class PinView extends View {
         mCirclePaint.setAntiAlias(true);
 
         //Color filter for the selection pin
-        mPinFilter = new LightingColorFilter(pinColor, pinColor);
-
+        //mPinFilter = new LightingColorFilter(pinColor, pinColor);
+        mPinFilter =  new PorterDuffColorFilter(pinColor, PorterDuff.Mode.SRC_IN);
         // Sets the minimum touchable area, but allows it to expand based on
         // image size
         int targetRadius = (int) Math.max(MINIMUM_TARGET_RADIUS_DP, mPinRadiusPx);
@@ -230,27 +240,37 @@ class PinView extends View {
                 && Math.abs(y - mY + mPinPadding) <= mTargetRadiusPx);
     }
 
+
     //Draw the circle regardless of pressed state. If pin size is >0 then also draw the pin and text
     @Override
     public void draw(Canvas canvas) {
+        super.draw(canvas);
         canvas.drawCircle(mX, mY, mCircleRadiusPx, mCirclePaint);
         //Draw pin if pressed
+
+        float ratio = mPin.getIntrinsicHeight() / (float) mPin.getIntrinsicWidth();
+
         if (mPinRadiusPx > 0) {
-            mBounds.set((int) mX - mPinRadiusPx,
-                    (int) mY - (mPinRadiusPx * 2) - (int) mPinPadding,
+            mBounds.set(((int) mX - mPinRadiusPx),
+                    (int) mY - (int)((mPinRadiusPx * 2) * ratio ) - (int) mPinPadding,
                     (int) mX + mPinRadiusPx, (int) mY - (int) mPinPadding);
             mPin.setBounds(mBounds);
             String text = mValue;
             if (mValue.length() > 4) {
                 text = mValue.substring(0, 4);
             }
-            calibrateTextSize(mTextPaint, text, 8, 24, mBounds.width());
-            mTextPaint.getTextBounds(text, 0, text.length(), mBounds);
+
+            mBoundsText.set(mBounds.left,
+                    (int) mY - (int) ((mPinRadiusPx * 2) * ratio) - (int) mPinPadding,
+                    (int) mX + mPinRadiusPx, (int) mY - (int) ((mPinRadiusPx * 2) * ratio) - (int) mPinPadding + mPinRadiusPx * 2);
+
+            calibrateTextSize(mTextPaint, text, MIN_TEXT_SIZE, MAX_TEXT_SIZE, mBoundsText.width());
+            mTextPaint.getTextBounds(text, 0, text.length(), mBoundsText);
             mTextPaint.setTextAlign(Paint.Align.CENTER);
             mPin.setColorFilter(mPinFilter);
             mPin.draw(canvas);
             canvas.drawText(text,
-                    mX, mY - mPinRadiusPx - mPinPadding + mTextYPadding,
+                    mX, mBounds.top + mPinRadiusPx + mTextYPadding,
                     mTextPaint);
         }
     }
@@ -261,6 +281,15 @@ class PinView extends View {
     private static void calibrateTextSize(Paint paint, String text, float min, float max,
             float boxWidth) {
         paint.setTextSize(10);
+
         paint.setTextSize(Math.max(Math.min((boxWidth / paint.measureText(text)) * 10, max), min));
+    }
+
+
+    public static float convertDpToPixel(float dp, Context context){
+        Resources resources = context.getResources();
+        DisplayMetrics metrics = resources.getDisplayMetrics();
+        float px = dp * (metrics.densityDpi / 160f);
+        return px;
     }
 }

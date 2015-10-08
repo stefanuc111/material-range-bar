@@ -25,7 +25,6 @@ package com.appyvet.rangebar;
  * governing permissions and limitations under the License.
  */
 
-import android.animation.ValueAnimator;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Canvas;
@@ -37,6 +36,8 @@ import android.util.Log;
 import android.util.TypedValue;
 import android.view.MotionEvent;
 import android.view.View;
+
+import com.nineoldandroids.animation.ValueAnimator;
 
 import java.util.HashMap;
 
@@ -69,7 +70,7 @@ public class RangeBar extends View {
 
     private static final float DEFAULT_TICK_HEIGHT_DP = 1;
 
-    private static final float DEFAULT_PIN_PADDING_DP = 16;
+    private static final float DEFAULT_PIN_PADDING_DP = 10;
 
     private static final float DEFAULT_BAR_WEIGHT_PX = 2;
 
@@ -87,7 +88,7 @@ public class RangeBar extends View {
     // Corresponds to material indigo 500.
     private static final int DEFAULT_CONNECTING_LINE_COLOR = 0xff3f51b5;
 
-    private static final float DEFAULT_EXPANDED_PIN_RADIUS_DP = 14;
+    private static final float DEFAULT_EXPANDED_PIN_RADIUS_DP = 10;
 
     private static final float DEFAULT_CIRCLE_SIZE_DP = 5;
 
@@ -1234,7 +1235,7 @@ public class RangeBar extends View {
             @Override
             public void onAnimationUpdate(ValueAnimator animation) {
                 mThumbRadiusDP = (Float) (animation.getAnimatedValue());
-                thumb.setSize(mThumbRadiusDP, mPinPadding * animation.getAnimatedFraction());
+               thumb.setSize(mThumbRadiusDP, mPinPadding * animation.getAnimatedFraction());
                 invalidate();
             }
         });
