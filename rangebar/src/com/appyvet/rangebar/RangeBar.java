@@ -858,6 +858,7 @@ public class RangeBar extends View {
         return mLeftIndex;
     }
 
+
     /**
      * Gets the index of the right-most pin.
      *
@@ -866,6 +867,27 @@ public class RangeBar extends View {
     public int getRightIndex() {
         return mRightIndex;
     }
+
+
+
+    /**
+     * Gets the right value of the range.
+     */
+    public float getRightValue() {
+        return (mRightIndex == (mTickCount - 1))
+                ? mTickEnd
+                : (mRightIndex * mTickInterval) + mTickStart;
+    }
+
+    /**
+     *  Gets the left value of the range.
+     */
+    public float getLeftValue() {
+        return (mLeftIndex == (mTickCount - 1))
+                ? mTickEnd
+                : (mLeftIndex * mTickInterval) + mTickStart;
+    }
+
 
     /**
      * Gets the tick interval.
